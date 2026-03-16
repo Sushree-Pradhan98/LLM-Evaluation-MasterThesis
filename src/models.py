@@ -11,11 +11,11 @@ def get_models():
         "Logistic Regression":
             LogisticRegression(max_iter=1000),
 
-        "SVM":
-            LinearSVC(),
+        "Support Vector Machine":
+            LinearSVC(C=2),
 
         "Random Forest":
-            RandomForestClassifier(n_estimators=100),
+            RandomForestClassifier(n_estimators=200),
 
         "Naive Bayes":
             MultinomialNB()

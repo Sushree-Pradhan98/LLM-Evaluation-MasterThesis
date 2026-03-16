@@ -1,175 +1,198 @@
-# ==============================
-# Main Pipeline for Emotion Classification
-# ==============================
+# ==========================================
+# Emotion Classification Pipeline
+# Stage 1: Classifier Selection
+# ==========================================
+
 import os
 import datetime
-from src.load_data import load_dataset
-from src.preprocess import preprocess_dataframe
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import balanced_accuracy_score
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import MultinomialNB
-
 import matplotlib.pyplot as plt
 
+from src.load_data import load_dataset
+from src.preprocess import preprocess_dataframe
+from src.features import create_tfidf_features
+from src.models import get_models
+from src.evaluate import evaluate_model
 
-# ==============================
-# 1. Load datasets
-# ==============================
 
-print("Loading datasets...")
+# ==========================================
+# Result directories
+# ==========================================
+
+BASE_RESULT_DIR = r"C:\Users\dell\PycharmProjects\LLM-Evaluation-MasterThesis\Result"
+
+PLOT_DIR = os.path.join(BASE_RESULT_DIR, "Plot")
+SCORE_DIR = os.path.join(BASE_RESULT_DIR, "Score")
+
+os.makedirs(PLOT_DIR, exist_ok=True)
+os.makedirs(SCORE_DIR, exist_ok=True)
+
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+# ==========================================
+# 1 Load datasets
+# ==========================================
+
+print("\nLoading datasets...")
 
 train = load_dataset("data/training.csv")
+val = load_dataset("data/validation.csv")
 test = load_dataset("data/test.csv")
 
 print("Train size:", len(train))
+print("Validation size:", len(val))
 print("Test size:", len(test))
 
 
-# ==============================
-# 2. Preprocess text
-# ==============================
+# ==========================================
+# 2 Preprocess datasets
+# ==========================================
 
-print("\nPreprocessing text...")
+train = preprocess_dataframe(train, "training")
+val = preprocess_dataframe(val, "validation")
+test = preprocess_dataframe(test, "test")
 
-train = preprocess_dataframe(train)
-test = preprocess_dataframe(test)
 
+# ==========================================
+# 3 Feature extraction for validation
+# ==========================================
 
-# ==============================
-# 3. Feature Extraction (TF-IDF)
-# ==============================
+print("\nCreating TF-IDF features for validation experiment...")
 
-print("\nExtracting TF-IDF features...")
-
-vectorizer = TfidfVectorizer(
-    max_features=10000,
-    ngram_range=(1, 2)  # unigrams + bigrams
+X_train, X_val, vectorizer = create_tfidf_features(
+    train["clean_text"],
+    val["clean_text"],
+    "validation"
 )
 
-X_train = vectorizer.fit_transform(train["clean_text"])
-X_test = vectorizer.transform(test["clean_text"])
-
 y_train = train["label"]
-y_test = test["label"]
-
-print("Feature matrix shape:", X_train.shape)
+y_val = val["label"]
 
 
-# ==============================
-# 4. Define Classifiers
-# ==============================
+# ==========================================
+# 4 Load classifiers
+# ==========================================
 
-models = {
-    "Logistic Regression": LogisticRegression(max_iter=1000),
-    "Support Vector Machine": LinearSVC(),
-    "Random Forest": RandomForestClassifier(n_estimators=100),
-    "Naive Bayes": MultinomialNB()
-}
-# ==============================
-# Create Result Folders
-# ==============================
-
-plot_path = r"C:\Users\dell\PycharmProjects\MasterThesis\Result\Plot"
-score_path = r"C:\Users\dell\PycharmProjects\MasterThesis\Result\Score"
-
-os.makedirs(plot_path, exist_ok=True)
-os.makedirs(score_path, exist_ok=True)
-
-# ==============================
-# 5. Train and Evaluate Models
-# ==============================
+models = get_models()
 
 results = {}
 
-print("\nTraining and evaluating models...\n")
+print("\nTraining and evaluating classifiers...\n")
 
 for name, model in models.items():
 
-    print("Training:", name)
-
-    model.fit(X_train, y_train)
-
-    predictions = model.predict(X_test)
-
-    score = balanced_accuracy_score(y_test, predictions)
+    score = evaluate_model(
+        model,
+        X_train,
+        X_val,
+        y_train,
+        y_val
+    )
 
     results[name] = score
 
     print(name, "Balanced Accuracy:", round(score, 4))
-    print()
 
 
-# ==============================
-# 6. Display Final Comparison
-# ==============================
+# ==========================================
+# 5 Print comparison
+# ==========================================
 
-print("\nFinal Model Comparison")
-print("-----------------------")
+print("\nValidation Results")
+print("------------------")
 
 for model, score in results.items():
     print(f"{model}: {score:.4f}")
 
 
-# ==============================
-# 7. Plot Results
-# ==============================
+# ==========================================
+# 6 Select best classifier
+# ==========================================
 
-# ==============================
-# Save Plot
-# ==============================
+best_model_name = max(results, key=results.get)
 
-model_names = list(results.keys())
-scores = list(results.values())
+print("\nBest Classifier:", best_model_name)
+print("Validation Balanced Accuracy:", round(results[best_model_name], 4))
 
-plt.figure(figsize=(8,5))
-plt.bar(model_names, scores)
 
-plt.ylabel("Balanced Accuracy")
-plt.title("Classifier Performance Comparison")
+# ==========================================
+# 7 Final evaluation on test set
+# ==========================================
 
-plt.xticks(rotation=30)
-plt.tight_layout()
+print("\nEvaluating best model on test set...")
 
-# timestamp to avoid overwriting
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+best_model = models[best_model_name]
 
-plot_file = os.path.join(plot_path, f"classifier_comparison_{timestamp}.png")
+# create TF-IDF features for test
+X_train_full, X_test, vectorizer = create_tfidf_features(
+    train["clean_text"],
+    test["clean_text"],
+    "test"
+)
 
-plt.savefig(plot_file)
+y_train_full = train["label"]
+y_test = test["label"]
 
-print("\nPlot saved to:", plot_file)
+test_score = evaluate_model(
+    best_model,
+    X_train_full,
+    X_test,
+    y_train_full,
+    y_test
+)
 
-plt.show()
+print("Test Balanced Accuracy:", round(test_score, 4))
 
-# ==============================
-# 8. Best Model
-# ==============================
 
-best_model = max(results, key=results.get)
+# ==========================================
+# 8 Save score results
+# ==========================================
 
-print("\nBest Classifier:", best_model)
-print("Best Balanced Accuracy:", round(results[best_model], 4))
-
-# ==============================
-# Save Scores
-# ==============================
-
-score_file = os.path.join(score_path, f"classifier_scores_{timestamp}.txt")
+score_file = os.path.join(
+    SCORE_DIR,
+    f"classifier_scores_{timestamp}.txt"
+)
 
 with open(score_file, "w") as f:
 
-    f.write("Final Model Comparison\n")
-    f.write("----------------------\n\n")
+    f.write("Validation Results\n")
+    f.write("------------------\n\n")
 
     for model, score in results.items():
         f.write(f"{model}: {score:.4f}\n")
 
-    f.write("\nBest Classifier: " + best_model)
-    f.write(f"\nBest Balanced Accuracy: {results[best_model]:.4f}\n")
+    f.write("\nBest Classifier: " + best_model_name)
+    f.write(f"\nValidation Balanced Accuracy: {results[best_model_name]:.4f}")
+    f.write(f"\nTest Balanced Accuracy: {test_score:.4f}")
 
-print("Scores saved to:", score_file)
+print("\nScores saved to:", score_file)
+
+
+# ==========================================
+# 9 Save comparison plot
+# ==========================================
+
+model_names = list(results.keys())
+scores = list(results.values())
+
+plt.figure(figsize=(8, 5))
+
+plt.bar(model_names, scores)
+
+plt.ylabel("Balanced Accuracy")
+plt.title("Classifier Comparison (Validation Set)")
+
+plt.xticks(rotation=30)
+
+plt.tight_layout()
+
+plot_file = os.path.join(
+    PLOT_DIR,
+    f"classifier_comparison_{timestamp}.png"
+)
+
+plt.savefig(plot_file)
+
+print("Plot saved to:", plot_file)
+
+plt.show()
