@@ -4,13 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5061869-e002-471b-adce-dfeef25e80b2" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/LLM-Evaluation-Thesis.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/LLM-Evaluation-Thesis.iml" afterDir="false" />
+    <list default="true" id="b5061869-e002-471b-adce-dfeef25e80b2" name="Changes" comment="Classifier performance modification">
+      <change afterPath="$PROJECT_DIR$/combine_main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/combine_data.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/cross_validation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/debug.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/deep_features.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/statistical_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/evaluate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/test.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Raw/test.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/training.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Raw/training.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/validation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Raw/validation.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/load_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/load_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/preprocess.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/preprocess.py" afterDir="false" />
     </list>
@@ -29,18 +35,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Sushree-Pradhan98"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Sushree-Pradhan98&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Sushree-Pradhan98/LLM-Evaluation-MasterThesis.git",
-    "accountId": "65299bd9-e435-42a3-80f1-8eed98f4fca1"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Sushree-Pradhan98/LLM-Evaluation-MasterThesis.git&quot;,
+    &quot;accountId&quot;: &quot;65299bd9-e435-42a3-80f1-8eed98f4fca1&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -53,11 +59,16 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python.Main.executor": "Run",
+    "Python.combine_data.executor": "Run",
+    "Python.combine_main.executor": "Run",
+    "Python.debug of 5x2.executor": "Run",
+    "Python.debug.executor": "Run",
     "Python.evaluate.executor": "Run",
     "Python.features.executor": "Run",
     "Python.load_data.executor": "Run",
     "Python.models.executor": "Run",
     "Python.preprocess.executor": "Run",
+    "Python.statistical_test.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -71,6 +82,8 @@
       <recent name="C:\Users\dell\PycharmProjects\MasterThesis\Data" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dell\PycharmProjects\LLM-Evaluation-MasterThesis\src" />
+      <recent name="C:\Users\dell\PycharmProjects\LLM-Evaluation-MasterThesis\data\Raw" />
       <recent name="C:\Users\dell\PycharmProjects\LLM-Evaluation-MasterThesis" />
       <recent name="C:\Users\dell\PycharmProjects\MasterThesis\Result" />
     </key>
@@ -90,6 +103,15 @@
       <option name="presentableId" value="Default" />
       <updated>1773653718971</updated>
     </task>
+    <task id="LOCAL-00001" summary="Classifier performance modification">
+      <option name="closed" value="true" />
+      <created>1773685412869</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1773685412869</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -158,5 +180,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Classifier performance modification" />
+    <option name="LAST_COMMIT_MESSAGE" value="Classifier performance modification" />
   </component>
 </project>

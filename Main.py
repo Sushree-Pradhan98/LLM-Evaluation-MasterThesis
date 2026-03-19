@@ -35,9 +35,9 @@ timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 print("\nLoading datasets...")
 
-train = load_dataset("data/training.csv")
-val = load_dataset("data/validation.csv")
-test = load_dataset("data/test.csv")
+train = load_dataset("data/Raw/training.csv")
+val = load_dataset("data/Raw/validation.csv")
+test = load_dataset("data/Raw/test.csv")
 
 print("Train size:", len(train))
 print("Validation size:", len(val))
