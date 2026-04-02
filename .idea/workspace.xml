@@ -4,21 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5061869-e002-471b-adce-dfeef25e80b2" name="Changes" comment="Classifier performance modification">
-      <change afterPath="$PROJECT_DIR$/combine_main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/combine_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cross_validation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/debug.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/deep_features.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/statistical_test.py" afterDir="false" />
+    <list default="true" id="b5061869-e002-471b-adce-dfeef25e80b2" name="Changes" comment="Fit the final model">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/test.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Raw/test.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/training.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Raw/training.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/validation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Raw/validation.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/preprocess.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/preprocess.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +62,8 @@
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/dell/PycharmProjects/MasterThesis/Data"
+    "last_opened_file_path": "C:/Users/dell/PycharmProjects/MasterThesis/Data",
+    "settings.editor.selected.configurable": "preferences.keymap"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -111,7 +100,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773685412869</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Fit the final model">
+      <option name="closed" value="true" />
+      <created>1773930025691</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1773930025691</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -183,6 +180,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Classifier performance modification" />
-    <option name="LAST_COMMIT_MESSAGE" value="Classifier performance modification" />
+    <MESSAGE value="Fit the final model" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fit the final model" />
   </component>
 </project>
