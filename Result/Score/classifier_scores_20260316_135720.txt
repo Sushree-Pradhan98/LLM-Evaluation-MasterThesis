@@ -1,0 +1,10 @@
+Final Model Comparison
+----------------------
+
+Logistic Regression: 0.7747
+Support Vector Machine: 0.8454
+Random Forest: 0.8188
+Naive Bayes: 0.5414
+
+Best Classifier: Support Vector Machine
+Best Balanced Accuracy: 0.8454
