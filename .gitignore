@@ -1,0 +1,12 @@
+# Ignore model files
+*.pkl
+
+# Python cache
+__pycache__/
+*.pyc
+
+# PyCharm files
+.idea/
+
+# Virtual environment
+.venv/

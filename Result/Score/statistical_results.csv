@@ -1,0 +1,4 @@
+Test,Model_Comparison,Statistic,P_value,Interpretation
+Shapiro (TF-IDF),TF-IDF vs SBERT,0.963836204953506,0.8285689089146097,Normal
+Shapiro (SBERT),TF-IDF vs SBERT,0.9604581556330285,0.7910841436900404,Normal
+Paired T-test,TF-IDF vs SBERT,62.825602296943956,3.3082195821847354e-13,Significant difference
