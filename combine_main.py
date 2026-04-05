@@ -1,6 +1,5 @@
 import os
 import warnings
-
 import joblib
 
 # ===============================
@@ -22,8 +21,6 @@ import pandas as pd
 
 from src.load_data import load_dataset
 from src.preprocess import preprocess_dataframe
-from src.features import extract_tfidf_and_save
-from src.deep_features import extract_sbert_and_save
 from src.cross_validation import run_kfold
 from src.models import get_models
 from sklearn.naive_bayes import GaussianNB
@@ -40,7 +37,7 @@ def summarize_results(results):
 
 
 # ===============================
-# STEP 1: LOAD DATA
+# STEP 1: LOAD DATA (FULL DATASET)
 # ===============================
 combined = load_dataset("data/combined.csv")
 print("Combined dataset size:", len(combined))
@@ -54,24 +51,23 @@ combined = preprocess_dataframe(combined, "combined")
 print("Columns after preprocessing:", combined.columns)
 
 if "clean_text" not in combined.columns:
-    raise ValueError("❌ clean_text column missing after preprocessing!")
-
-# Reduce dataset for faster testing
-#combined = combined.sample(n=5000, random_state=42)
+    raise ValueError("❌ clean_text column missing!")
 
 texts = combined["clean_text"].tolist()
 labels = combined["label"].tolist()
 
-
-# ===============================
-# STEP 3: TF-IDF FEATURES
-# ===============================
-X_tfidf = extract_tfidf_and_save(texts)
+y = np.array(labels)
 
 
 # ===============================
-# STEP 4: SBERT FEATURES
+# STEP 3: LOAD FEATURES (NO EXTRACTION)
 # ===============================
+print("\nLoading precomputed features...")
+
+# TF-IDF
+X_tfidf = joblib.load("Result/Features/tfidf_features.pkl")
+
+# SBERT
 sbert_models = [
     "all-MiniLM-L6-v2",
     "all-mpnet-base-v2",
@@ -82,18 +78,17 @@ sbert_models = [
 sbert_features = {}
 
 for model_name in sbert_models:
-    sbert_features[model_name] = extract_sbert_and_save(texts, model_name)
+    path = f"Result/Features/{model_name}.pkl"
+    sbert_features[model_name] = joblib.load(path)
 
-print("\n✅ Feature extraction completed!")
+print("✅ Features loaded!")
 
 
 # ===============================
-# STEP 5: PREPARE MODELS
+# STEP 4: PREPARE MODELS
 # ===============================
-y = np.array(labels)
 models = get_models()
 
-# SBERT-compatible models (NO MultinomialNB)
 models_sbert = {
     "LinearSVC": models["LinearSVC"],
     "RandomForest": models["RandomForest"],
@@ -104,14 +99,16 @@ models_sbert = {
 
 
 # ===============================
-# STEP 6: TF-IDF K-FOLD
+# STEP 5: TF-IDF K-FOLD (5x2)
 # ===============================
-print("\nRunning K-Fold on TF-IDF features...")
+print("\nRunning K-Fold on TF-IDF...")
 tfidf_results = run_kfold(models, X_tfidf, y)
 
 joblib.dump(tfidf_results, os.path.join(RESULT_DIR, "tfidf_fold_results.pkl"))
+
+
 # ===============================
-# STEP 7: SBERT K-FOLD
+# STEP 6: SBERT K-FOLD (5x2)
 # ===============================
 all_results = {}
 
@@ -120,15 +117,17 @@ for model_name, features in sbert_features.items():
     print(f"\nRunning K-Fold for {model_name}...")
 
     X = np.array(features)
-
     results = run_kfold(models_sbert, X, y)
 
     all_results[model_name] = results
-file_name = f"{model_name}_fold_results.pkl"
-joblib.dump(results, os.path.join(RESULT_DIR, file_name))
+
+    # Save each SBERT result
+    file_name = f"{model_name}_fold_results.pkl"
+    joblib.dump(results, os.path.join(RESULT_DIR, file_name))
+
 
 # ===============================
-# STEP 8: PRINT RESULTS
+# STEP 7: PRINT RESULTS
 # ===============================
 print("\n===== TF-IDF RESULTS =====")
 tfidf_summary = summarize_results(tfidf_results)
@@ -140,7 +139,7 @@ for model_name, results in all_results.items():
 
 
 # ===============================
-# STEP 9: SAVE ALL RESULTS (ONE FILE)
+# STEP 8: SAVE FINAL RESULTS
 # ===============================
 final_rows = []
 
@@ -164,7 +163,6 @@ for feature_name, results in all_results.items():
             "Score": score
         })
 
-# Save
 final_df = pd.DataFrame(final_rows)
 
 final_path = os.path.join(RESULT_DIR, "final_results.csv")
@@ -174,41 +172,33 @@ print("\n✅ All results saved to:", final_path)
 
 
 # ===============================
-# STEP 10: BEST MODEL
+# STEP 9: BEST MODEL
 # ===============================
 best = final_df.sort_values(by="Score", ascending=False).iloc[0]
 
 print("\n🔥 BEST CONFIGURATION:")
 print(best)
+
+
 # ===============================
-# STEP 11: TRAIN FINAL MODEL
+# STEP 10: TRAIN FINAL MODEL
 # ===============================
 from sklearn.svm import LinearSVC
-import joblib
 
-print("\n🚀 Training FINAL model on FULL dataset...")
+print("\n🚀 Training FINAL model...")
 
-# Reload FULL dataset (no sampling!)
-combined_full = load_dataset("data/combined.csv")
-combined_full = preprocess_dataframe(combined_full, "combined_full")
+# Load vectorizer + features
+vectorizer = joblib.load("Result/Features/tfidf_vectorizer.pkl")
+X_full = joblib.load("Result/Features/tfidf_features.pkl")
 
-texts_full = combined_full["clean_text"].tolist()
-labels_full = combined_full["label"].tolist()
-
-# TF-IDF on FULL data
-X_full = extract_tfidf_and_save(texts_full)
-
-y_full = np.array(labels_full)
-
-# Train model
 final_model = LinearSVC()
-final_model.fit(X_full, y_full)
+final_model.fit(X_full, y)
 
 print("✅ Final model trained!")
 
 
 # ===============================
-# STEP 12: SAVE MODEL
+# STEP 11: SAVE MODEL
 # ===============================
 MODEL_DIR = r"C:\Users\dell\PycharmProjects\LLM-Evaluation-MasterThesis\Result\Model"
 os.makedirs(MODEL_DIR, exist_ok=True)
@@ -216,14 +206,8 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 model_path = os.path.join(MODEL_DIR, "final_model.pkl")
 vectorizer_path = os.path.join(MODEL_DIR, "tfidf_vectorizer.pkl")
 
-# Save model
 joblib.dump(final_model, model_path)
-
-# Save vectorizer (IMPORTANT)
-joblib.dump(
-    joblib.load("Result/Features/tfidf_vectorizer.pkl"),
-    vectorizer_path
-)
+joblib.dump(vectorizer, vectorizer_path)
 
 print("\n✅ Final model saved to:", model_path)
 print("✅ Vectorizer saved to:", vectorizer_path)
