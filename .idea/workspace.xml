@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5061869-e002-471b-adce-dfeef25e80b2" name="Changes" comment="Fit the final model">
+    <list default="true" id="b5061869-e002-471b-adce-dfeef25e80b2" name="Changes" comment="Run on full dataset">
+      <change afterPath="$PROJECT_DIR$/src/analyze_changes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/classify_llm_outputs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/generate_llm_data.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/prompts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Result/Score/final_results.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Result/Score/final_results.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Result/Score/statistical_results.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Result/Score/statistical_results.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/combine_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/combine_main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,29 +46,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.combine_data.executor&quot;: &quot;Run&quot;,
-    &quot;Python.combine_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.debug of 5x2.executor&quot;: &quot;Run&quot;,
-    &quot;Python.debug.executor&quot;: &quot;Run&quot;,
-    &quot;Python.evaluate.executor&quot;: &quot;Run&quot;,
-    &quot;Python.features.executor&quot;: &quot;Run&quot;,
-    &quot;Python.load_data.executor&quot;: &quot;Run&quot;,
-    &quot;Python.models.executor&quot;: &quot;Run&quot;,
-    &quot;Python.preprocess.executor&quot;: &quot;Run&quot;,
-    &quot;Python.statistical_test.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/dell/PycharmProjects/MasterThesis/Data&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.Main.executor": "Run",
+    "Python.analyze_changes.executor": "Run",
+    "Python.classify_llm_outputs.executor": "Run",
+    "Python.combine_data.executor": "Run",
+    "Python.combine_main.executor": "Run",
+    "Python.debug of 5x2.executor": "Run",
+    "Python.debug.executor": "Run",
+    "Python.evaluate.executor": "Run",
+    "Python.features.executor": "Run",
+    "Python.generate_llm_data.executor": "Run",
+    "Python.load_data.executor": "Run",
+    "Python.models.executor": "Run",
+    "Python.preprocess.executor": "Run",
+    "Python.prompts.executor": "Run",
+    "Python.statistical_test.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/dell/PycharmProjects/MasterThesis/Data",
+    "settings.editor.selected.configurable": "preferences.keymap"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\dell\PycharmProjects\MasterThesis\Data" />
@@ -110,7 +115,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773930025691</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Run on full dataset">
+      <option name="closed" value="true" />
+      <created>1775397912491</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1775397912491</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -183,6 +196,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Classifier performance modification" />
     <MESSAGE value="Fit the final model" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fit the final model" />
+    <MESSAGE value="Run on full dataset" />
+    <option name="LAST_COMMIT_MESSAGE" value="Run on full dataset" />
   </component>
 </project>
