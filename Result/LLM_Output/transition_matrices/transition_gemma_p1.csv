@@ -1,0 +1,7 @@
+Original Label,0 (sadness),1 (joy),2 (love),3 (anger),4 (fear),5 (surprise)
+0 (sadness),192,64,5,9,15,5
+1 (joy),30,290,12,4,8,1
+2 (love),7,30,38,2,2,0
+3 (anger),26,26,0,76,4,1
+4 (fear),13,19,1,2,82,1
+5 (surprise),8,7,1,0,3,16
