@@ -1,8 +1,11 @@
+import json
 import logging
 import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from urllib import error as urlerror, request as urlrequest
 
 import joblib
 import pandas as pd
@@ -16,12 +19,6 @@ from preprocess import clean_text
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 LOG_FORMAT = "%(asctime)s | %(levelname)s | %(message)s"
-
-logging.basicConfig(
-    level=logging.INFO,
-    format=LOG_FORMAT,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("google_genai.models").setLevel(logging.WARNING)
@@ -57,41 +54,79 @@ def get_env_or_default(name, default):
     value = os.getenv(name)
     return value if value else default
 
-INPUT_FILE = os.path.join(BASE_DIR, "data", "combined.csv")
+INPUT_FILE = os.path.join(BASE_DIR, "Result", "LLM_Output", "original.csv")
 OUTPUT_DIR = get_env_or_default(
     "LLM_OUTPUT_DIR",
     os.path.join(BASE_DIR, "Result", "LLM_Output"),
 )
+LOG_DIR = os.path.join(OUTPUT_DIR, "logs")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 MODEL_PATH = os.path.join(BASE_DIR, "Result", "Model", "final_model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "Result", "Model", "tfidf_vectorizer.pkl")
+RUN_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+LOG_FILE_PATH = os.path.join(LOG_DIR, f"generate_llm_data_{RUN_TIMESTAMP}.log")
 
 LLM_CONFIGS = {
+    "ollama": {
+        "provider": "ollama",
+        "model": get_env_or_default("OLLAMA_MODEL", "llama3.2"),
+    },
+    "gemma": {
+        "provider": "ollama",
+        "model": get_env_or_default("GEMMA_MODEL", "gemma3:4b"),
+    },
+    "phi3": {
+        "provider": "ollama",
+        "model": get_env_or_default("PHI3_MODEL", "phi3"),
+    },
     "gemini": {
+        "provider": "gemini",
         "api_key_env": "GEMINI_API_KEY",
         "model": get_env_or_default("GEMINI_MODEL", "gemini-2.5-flash"),
     },
     "chatgpt": {
+        "provider": "chatgpt",
         "api_key_env": "OPENAI_API_KEY",
         "model": get_env_or_default("OPENAI_MODEL", "gpt-4o-mini"),
     },
     "claude": {
+        "provider": "claude",
         "api_key_env": "ANTHROPIC_API_KEY",
         "model": get_env_or_default("ANTHROPIC_MODEL", "claude-3-5-sonnet-latest"),
     },
 }
 ENABLED_LLM_NAMES = [
     llm_name.strip().lower()
-    for llm_name in get_env_or_default("LLM_ENABLED_PROVIDERS", "gemini").split(",")
+    for llm_name in get_env_or_default("LLM_ENABLED_PROVIDERS", "ollama,gemma,phi3").split(",")
     if llm_name.strip()
 ]
+OLLAMA_BASE_URL = get_env_or_default("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
 
 REQUEST_DELAY_SECONDS = float(get_env_or_default("LLM_REQUEST_DELAY_SECONDS", "0.5"))
 SAMPLE_SIZE = os.getenv("LLM_SAMPLE_SIZE")
 MAX_RETRIES_PER_ROW = int(get_env_or_default("LLM_MAX_RETRIES_PER_ROW", "2"))
 BATCH_SIZE = int(get_env_or_default("LLM_BATCH_SIZE", "5"))
 MAX_WORKERS = int(get_env_or_default("LLM_MAX_WORKERS", str(BATCH_SIZE)))
+
+
+def configure_logging():
+    formatter = logging.Formatter(LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S")
+    file_handler = logging.FileHandler(LOG_FILE_PATH, encoding="utf-8")
+    stream_handler = logging.StreamHandler()
+
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(stream_handler)
+
+
+configure_logging()
 
 
 class FatalProviderError(RuntimeError):
@@ -112,15 +147,61 @@ def load_dataset():
 
     if SAMPLE_SIZE:
         sample_size = min(int(SAMPLE_SIZE), len(df))
-        logger.info("Sampling %s rows from combined dataset", sample_size)
-        df = df.sample(n=sample_size, random_state=42)
+        if sample_size < len(df):
+            logger.info("Sampling %s rows from original dataset", sample_size)
+            df = df.sample(n=sample_size, random_state=42)
+        else:
+            logger.info(
+                "Requested sample size %s matches dataset size; keeping original.csv order unchanged",
+                sample_size,
+            )
 
     logger.info("Dataset ready with %s texts", len(df))
     return df
 
 
+def get_available_ollama_models():
+    response = urlrequest.urlopen(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
+    with response:
+        payload = json.loads(response.read().decode("utf-8"))
+
+    available_models = set()
+    for item in payload.get("models", []):
+        for key in ("name", "model"):
+            value = item.get(key)
+            if value:
+                available_models.add(value)
+                available_models.add(value.split(":")[0])
+    return available_models
+
+
 def build_clients():
     clients = {}
+
+    local_configs = {
+        llm_name: config
+        for llm_name, config in LLM_CONFIGS.items()
+        if config["provider"] == "ollama"
+    }
+    if local_configs:
+        try:
+            available_ollama_models = get_available_ollama_models()
+            clients["ollama"] = {"base_url": OLLAMA_BASE_URL}
+            logger.info("Ollama server reachable at %s", OLLAMA_BASE_URL)
+
+            for llm_name, config in local_configs.items():
+                model_name = config["model"]
+                if model_name in available_ollama_models or model_name.split(":")[0] in available_ollama_models:
+                    logger.info("Local model ready | llm=%s | model=%s", llm_name, model_name)
+                else:
+                    logger.warning(
+                        "Local model missing | llm=%s | model=%s | run=`ollama pull %s`",
+                        llm_name,
+                        model_name,
+                        model_name,
+                    )
+        except Exception as error:
+            logger.warning("Ollama disabled: %s", error)
 
     gemini_api_key = os.getenv(LLM_CONFIGS["gemini"]["api_key_env"])
     if gemini_api_key:
@@ -172,7 +253,11 @@ def get_enabled_llms(clients):
     enabled_llms = [
         llm_name
         for llm_name in LLM_CONFIGS
-        if llm_name in clients and llm_name in ENABLED_LLM_NAMES
+        if llm_name in ENABLED_LLM_NAMES
+        and (
+            (LLM_CONFIGS[llm_name]["provider"] == "ollama" and "ollama" in clients)
+            or llm_name in clients
+        )
     ]
 
     if not enabled_llms:
@@ -188,24 +273,47 @@ def get_enabled_llms(clients):
 
 def call_llm(text, prompt, llm_name, clients, prompt_key, row_number):
     full_prompt = f"{prompt}\n\n{text}"
+    provider = LLM_CONFIGS[llm_name]["provider"]
 
     for attempt in range(1, MAX_RETRIES_PER_ROW + 2):
         try:
-            if llm_name == "gemini":
+            if provider == "ollama":
+                payload = json.dumps(
+                    {
+                        "model": LLM_CONFIGS[llm_name]["model"],
+                        "prompt": full_prompt,
+                        "stream": False,
+                        "options": {
+                            "num_predict": 120,
+                            "temperature": 0.7,
+                        },
+                    }
+                ).encode("utf-8")
+                req = urlrequest.Request(
+                    f"{clients['ollama']['base_url']}/api/generate",
+                    data=payload,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urlrequest.urlopen(req, timeout=900) as response:
+                    body = json.loads(response.read().decode("utf-8"))
+                return body.get("response", "").strip() or text
+
+            if provider == "gemini":
                 response = clients["gemini"].models.generate_content(
                     model=LLM_CONFIGS["gemini"]["model"],
                     contents=full_prompt,
                 )
                 return response.text.strip()
 
-            if llm_name == "chatgpt":
+            if provider == "chatgpt":
                 response = clients["chatgpt"].responses.create(
                     model=LLM_CONFIGS["chatgpt"]["model"],
                     input=full_prompt,
                 )
                 return response.output_text.strip()
 
-            if llm_name == "claude":
+            if provider == "claude":
                 response = clients["claude"].messages.create(
                     model=LLM_CONFIGS["claude"]["model"],
                     max_tokens=1024,
@@ -216,6 +324,36 @@ def call_llm(text, prompt, llm_name, clients, prompt_key, row_number):
                 ).strip()
 
             raise ValueError(f"Unsupported LLM: {llm_name}")
+
+        except urlerror.HTTPError as error:
+            error_message = error.read().decode("utf-8", errors="replace")
+            logger.error(
+                "LLM call failed | llm=%s | prompt=%s | row=%s | attempt=%s | error=%s",
+                llm_name,
+                prompt_key,
+                row_number,
+                attempt,
+                error_message,
+            )
+
+            if attempt <= MAX_RETRIES_PER_ROW:
+                logger.warning(
+                    "Retrying row after transient failure | llm=%s | prompt=%s | row=%s | next_attempt=%s",
+                    llm_name,
+                    prompt_key,
+                    row_number,
+                    attempt + 1,
+                )
+                time.sleep(REQUEST_DELAY_SECONDS)
+                continue
+
+            logger.error(
+                "Falling back to original text | llm=%s | prompt=%s | row=%s",
+                llm_name,
+                prompt_key,
+                row_number,
+            )
+            return text
 
         except Exception as error:
             error_message = str(error)
@@ -309,6 +447,7 @@ def predict_labels(texts, model, vectorizer):
 
 def main():
     logger.info("Starting LLM dataset generation")
+    logger.info("Log file: %s", LOG_FILE_PATH)
     logger.info("Output directory: %s", OUTPUT_DIR)
     logger.info("Request delay: %s seconds", REQUEST_DELAY_SECONDS)
     logger.info("Batch size: %s", BATCH_SIZE)
@@ -394,12 +533,9 @@ def main():
                 new_df = pd.DataFrame(
                     {
                         "original_text": texts,
-                        "generated_text": new_texts,
                         "original_label": original_labels,
-                        "predicted_generated_label": predicted_generated_labels,
-                        "label_changed": label_changed,
-                        "prompt_key": prompt_key,
-                        "llm_name": llm_name,
+                        "generated_text": new_texts,
+                        "generated_label": predicted_generated_labels,
                     }
                 )
 
@@ -419,9 +555,6 @@ def main():
 
             break
 
-    original_output_path = os.path.join(OUTPUT_DIR, "original.csv")
-    df.to_csv(original_output_path, index=False)
-    logger.info("Saved original sampled dataset to %s", original_output_path)
     logger.info("All datasets generated successfully")
 
 
