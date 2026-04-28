@@ -14,7 +14,6 @@ __pycache__/
 # Local environment secrets
 .env
 data/
-*.csv
 !result/*.csv
 *.json
 checkpoints/

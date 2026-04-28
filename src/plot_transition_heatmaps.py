@@ -13,38 +13,37 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "Result", "LLM_Output", "plots")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ===============================
-# SELECT IMPORTANT FILES
+# GET ALL FILES AUTOMATICALLY
 # ===============================
-# You can change these if needed
-TARGET_FILES = [
-    "transition_gemma_p1.csv",
-    "transition_ollama_p3.csv",
-    "transition_phi3_p3.csv"
-]
+FILES = [f for f in os.listdir(TRANSITION_DIR) if f.endswith(".csv")]
+
+print("📂 Found files:", FILES)
 
 # ===============================
-# LOOP
+# LOOP THROUGH ALL FILES
 # ===============================
-for file in TARGET_FILES:
+for file in FILES:
 
     path = os.path.join(TRANSITION_DIR, file)
-
-    if not os.path.exists(path):
-        print(f"⚠️ Missing: {file}")
-        continue
 
     df = pd.read_csv(path, index_col=0)
 
     plt.figure()
 
     plt.imshow(df.values)
+    for i in range(len(df.index)):
+        for j in range(len(df.columns)):
+            plt.text(j, i, df.values[i, j], ha='center', va='center', fontsize=8)
 
     plt.xticks(range(len(df.columns)), df.columns, rotation=45)
     plt.yticks(range(len(df.index)), df.index)
 
     plt.xlabel("Transformed Label")
     plt.ylabel("Original Label")
-    plt.title(f"Transition Heatmap: {file.replace('.csv','')}")
+
+    # Clean title
+    title = file.replace("transition_", "").replace(".csv", "")
+    plt.title(f"Heatmap: {title}")
 
     plt.colorbar()
 
@@ -56,3 +55,5 @@ for file in TARGET_FILES:
     print("✅ Saved:", save_path)
 
     plt.show()
+
+print("\n🎉 All heatmaps generated!")
